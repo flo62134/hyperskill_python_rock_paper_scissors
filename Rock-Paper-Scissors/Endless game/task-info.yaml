@@ -101,6 +101,49 @@ files:
     if __name__ == '__main__':
         RPSTest("rps.game").run_tests()
   learner_created: false
+- name: rps/game.py
+  visible: true
+  text: |
+    # Write your code here
+    import random
+
+    ROCK = 'rock'
+    PAPER = 'paper'
+    SCISSORS = 'scissors'
+    PLAYS = [ROCK, PAPER, SCISSORS]
+
+    LOSE = 'Sorry, but computer chose {0}'
+    DRAW = 'There is a draw ({0})'
+    WIN = 'Well done. Computer chose {0} and failed'
+
+
+    def get_computer_winning_play(user_play: str):
+        if user_play == ROCK:
+            return PAPER
+        elif user_play == PAPER:
+            return SCISSORS
+        else:
+            return ROCK
+
+
+    def get_round_state(user_play: str, computer_play: str):
+        winning_play = get_computer_winning_play(user_play)
+
+        if user_play == computer_play:
+            return DRAW
+
+        return LOSE if computer_play == winning_play else WIN
+
+
+    def format_round_state(state: str, computer_play: str):
+        return state.format(computer_play)
+
+
+    user_play = input()
+    computer_play = random.choice(PLAYS)
+    round_state = get_round_state(user_play, computer_play)
+    print(format_round_state(round_state, computer_play))
+  learner_created: true
 feedback_link: https://hyperskill.org/projects/78/stages/433/implement
-status: Unchecked
+status: Solved
 record: -1
