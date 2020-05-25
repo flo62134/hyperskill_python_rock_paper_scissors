@@ -1,21 +1,21 @@
 # Write your code here
 import random
 import os
+import typing
 
-USER_GREETING = 'Hello, {0}'
-
+RULES_SEPARATOR = ','
 SCORE_FILE = 'rating.txt'
-
-INVALID_INPUT = 'Invalid input'
 
 EXIT = '!exit'
 RATING = '!rating'
 ROCK = 'rock'
 PAPER = 'paper'
 SCISSORS = 'scissors'
-PLAYS = [ROCK, PAPER, SCISSORS]
-OPTIONS = [ROCK, PAPER, SCISSORS, EXIT, RATING]
+DEFAULT_RULES = [ROCK, PAPER, SCISSORS]
+OPTIONS = [EXIT, RATING]
 
+INVALID_INPUT = 'Invalid input'
+USER_GREETING = 'Hello, {0}'
 ASK_USERNAME = 'Enter your name:'
 LOSE = 'Sorry, but computer chose {0}'
 LOSE_SCORE = 0
@@ -27,38 +27,40 @@ YOUR_RATING = "Your rating: {0}"
 END = 'Bye!'
 
 
-def get_computer_winning_play(user_play: str):
-    if user_play == ROCK:
-        return PAPER
-    elif user_play == PAPER:
-        return SCISSORS
-    else:
-        return ROCK
+def get_computer_winning_play(user_play: str, rules: typing.List[str]):
+    user_play_index = rules.index(user_play)
+
+    rules_copy = rules[:]
+    rotating_index = user_play_index + 1
+    rotated_rules = rules_copy[rotating_index:] + rules_copy[:rotating_index]
+
+    length = len(rotated_rules)
+    return rotated_rules[0:(length // 2)]
 
 
-def get_round_state(user_play: str, computer_play: str):
-    winning_play = get_computer_winning_play(user_play)
+def get_round_state(user_play: str, computer_play: str, rules: typing.List[str]):
+    winning_plays = get_computer_winning_play(user_play, rules)
 
     if user_play == computer_play:
         return DRAW
 
-    return LOSE if computer_play == winning_play else WIN
+    return LOSE if computer_play in winning_plays else WIN
 
 
 def format_round_state(state: str, computer_play: str):
     return state.format(computer_play)
 
 
-def play_round(user_play: str):
-    computer_play = random.choice(PLAYS)
-    round_state = get_round_state(user_play, computer_play)
+def play_round(user_play: str, rules: typing.List[str]):
+    computer_play = random.choice(rules)
+    round_state = get_round_state(user_play, computer_play, rules)
     print(format_round_state(round_state, computer_play))
 
     return round_state
 
 
-def is_valid_word(word: str):
-    return word in OPTIONS
+def is_valid_word(word: str, rules: typing.List[str]):
+    return word in OPTIONS or word in rules
 
 
 def ask_username():
@@ -80,7 +82,7 @@ def get_user_score(username: str):
             if line_username == username:
                 score = line_score
 
-        return score
+        return int(score)
     else:
         return 0
 
@@ -101,14 +103,24 @@ def apply_round_score(current_score: int, round_state: str):
     return current_score + round_score
 
 
+def ask_rules():
+    rules = input()
+    if rules == '':
+        return DEFAULT_RULES
+
+    return rules.split(RULES_SEPARATOR)
+
+
 user_play = ''
 username = ask_username()
 greet_player(username)
+rules = ask_rules()
+print('Okay, let\'s start')
 score = get_user_score(username)
 
 while user_play != EXIT:
     user_play = input()
-    is_valid = is_valid_word(user_play)
+    is_valid = is_valid_word(user_play, rules)
     if not is_valid:
         print(INVALID_INPUT)
         continue
@@ -117,8 +129,8 @@ while user_play != EXIT:
         display_score(score)
         continue
 
-    if user_play in PLAYS:
-        round_state = play_round(user_play)
+    if user_play in rules:
+        round_state = play_round(user_play, rules)
         score = apply_round_score(score, round_state)
 
 print(END)
